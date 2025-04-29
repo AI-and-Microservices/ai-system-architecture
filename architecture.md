@@ -10,7 +10,7 @@ flowchart TB
     Traefik --> UserService
     Traefik --> SocketService
     Traefik --> ChatbotService
-    Traefik --> IntegrationMessagePlatform
+    Traefik --> | Webhook api | IntegrationMessagePlatform
 
     Nginx --> DashboardFE
     FileService --> Minio
