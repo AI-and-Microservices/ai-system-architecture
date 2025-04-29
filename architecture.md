@@ -10,6 +10,7 @@ flowchart TB
     Traefik --> FileService
     Traefik --> UserService
     Traefik --> SocketService
+    Traefik --> BotManagerService
     Traefik --> ChatbotService
     Traefik --> | Webhook api | IntegrationMessagePlatform
     Traefik --> AppicationService
@@ -25,10 +26,10 @@ flowchart TB
     SocketService --> |Direct incoming message| Kafka
     AppicationService --> MongoDB
     Kafka --> FunctionCallService
-    ChatbotService --> |Function call data| Kafka
+    AIAgent --> |Function call data| Kafka
     IntegrationMessagePlatform --> |Incomming message| Kafka
-    Kafka --> |Recept new message| ChatbotService
-    ChatbotService -->|Out going message| Kafka
+    Kafka --> |Recept new message| AIAgent
+    AIAgent -->|Out going message| Kafka
     Kafka --> |direct outgoing message| SocketService
     Kafka --> |Outgoing message| IntegrationMessagePlatform
 ```
@@ -43,12 +44,25 @@ flowchart TB
     MessageProcessService --> |Get appication info| AppicationService
     AppicationService --> |Receipt Appication info| MessageProcessService
     MessageProcessService --> |New message| Kafka
-    Kafka --> |New message| ChatbotService
-    ChatbotService --> FunctionCallService
-    ChatbotService --> |Outgoing message| Kafka
+    Kafka --> |New message| AIAgent
+    AIAgent --> FunctionCallService
+    AIAgent --> |Outgoing message| Kafka
     Kafka --> |Outgoing message| MessageProcessService
     MessageProcessService --> |Indirect outgoing message| SocketService
     MessageProcessService --> |Platform outgoing message| IntegrationMessagePlatform
+
+```
+
+
+### AIAgent message processing flow
+```mermaid
+flowchart TB
+    Kafka --> |New message, include app_id| AIAgent
+    AIAgent --> |get appication prompt| AppicationService
+    AIAgent --> |get chatbots config| ChatbotService
+    AIAgent --> |Response message| Kafka
+    AIAgent --> FunctionCallService
+    Kafka --> |out going message| MessageProcessService
 
 ```
 
