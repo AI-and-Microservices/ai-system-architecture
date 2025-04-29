@@ -10,10 +10,10 @@ flowchart TB
     Traefik --> FileService
     Traefik --> UserService
     Traefik --> SocketService
-    Traefik --> BotManagerService
     Traefik --> ChatbotService
     Traefik --> | Webhook api | IntegrationMessagePlatform
     Traefik --> AppicationService
+    Traefik --> ConversationService
 
     AppicationService --> |New conversation| ConversationService
     IntegrationMessagePlatform --> |New message| ConversationService
@@ -39,31 +39,22 @@ flowchart TB
 flowchart TB
     Traefik --> SocketService
     Traefik --> | Webhook api | IntegrationMessagePlatform
-    IntegrationMessagePlatform --> MessageProcessService
-    SocketService --> |Indirect message| MessageProcessService
-    MessageProcessService --> |Get appication info| AppicationService
-    AppicationService --> |Receipt Appication info| MessageProcessService
-    MessageProcessService --> |New message| Kafka
+    IntegrationMessagePlatform --> |New message| Kafka
+    SocketService --> |New message| Kafka
     Kafka --> |New message| AIAgent
+    AIAgent --> |get app config| AppicationService
+    AppicationService --> |Receive app config| AIAgent
+    AIAgent --> |get chatbot prompt| ChatbotService
+    ChatbotService --> |Receive chatbot prompt| AIAgent
+    AIAgent --> |Get message history| ConversationService
+    ConversationService --> |Receive message history| AIAgent
     AIAgent --> FunctionCallService
     AIAgent --> |Outgoing message| Kafka
     Kafka --> |Outgoing message| MessageProcessService
     MessageProcessService --> |Indirect outgoing message| SocketService
     MessageProcessService --> |Platform outgoing message| IntegrationMessagePlatform
-
-```
-
-
-### AIAgent message processing flow
-```mermaid
-flowchart TB
-    Kafka --> |New message, include app_id| AIAgent
-    AIAgent --> |get appication prompt| AppicationService
-    AIAgent --> |get chatbots config| ChatbotService
-    AIAgent --> |Response message| Kafka
-    AIAgent --> FunctionCallService
-    Kafka --> |out going message| MessageProcessService
-
+    FunctionCallService --> |API Call| 3rdparty
+    FunctionCallService --> |Save function_call result| ConversationService
 ```
 
 ### Key Components
