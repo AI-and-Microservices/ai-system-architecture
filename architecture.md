@@ -44,10 +44,12 @@ flowchart TD
     %% CORE PROCESSING
     subgraph CoreProcessing ["MessageProcessor"]
         Kafka_incoming --> MessageProcessor:::processing
-        MessageProcessor -->|Call AI API| AIService(OpenAI/Gemini/grok):::processing
         MessageProcessor -->|get config| AppicationService:::processing
+        AppicationService -->|cache| Redis:::cache
         MessageProcessor -->|get prompt| ChatbotService:::processing
+        ChatbotService -->|cache| Redis:::cache
         MessageProcessor -->|get history| ConversationService:::persistence
+        MessageProcessor -->|Call AI API| AIService(OpenAI/Gemini/grok):::processing
         MessageProcessor --> Kafka_outgoing:::kafka
         MessageProcessor --> Kafka_function_call:::kafka
     end
@@ -63,6 +65,8 @@ flowchart TD
     %% OUTGOING
     subgraph Persistence ["Outgoing & Storage"]
         Kafka_outgoing --> ConversationService:::persistence
+        ConversationService -->|Send message| SocketService:::entry
+        ConversationService -->|Send message| IntegrationMessagePlatform:::entry
     end
 
     %% CLASS DEFINITIONS
@@ -71,6 +75,8 @@ flowchart TD
     classDef kafka fill:#ffe9d6,stroke:#ff9500,color:#000;
     classDef function fill:#f0e7ff,stroke:#af52de,color:#000;
     classDef persistence fill:#f2f2f7,stroke:#8e8e93,color:#000;
+    classDef cache fill:#d0f0d0,stroke:#34c759,color:#000;
+
   
 ```
 
