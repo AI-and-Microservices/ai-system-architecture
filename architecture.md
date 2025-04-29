@@ -16,6 +16,7 @@ flowchart TB
     FileService --> Minio
     UserService --> MongoDB
     SocketService --> Redis
+    SocketService --> |Direct incoming message| Kafka
     AppicationService --> MongoDB
     Kafka --> FunctionCallService
     ChatbotService --> |Function call data| Kafka
