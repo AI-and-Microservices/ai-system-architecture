@@ -19,7 +19,7 @@ flowchart TB
 
     Nginx --> DashboardFE
     FileService --> Minio
-    UserService --> [(MongoDB)]
+    UserService --> [(Database)]
     SocketService --> Redis
     SocketService --> |Direct incoming message| Kafka
     AppicationService --> MongoDB
