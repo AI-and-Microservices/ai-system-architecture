@@ -10,13 +10,20 @@ flowchart TB
     Traefik --> UserService
     Traefik --> SocketService
     Traefik --> ChatbotService
+    Traefik --> IntegrationMessagePlatform
 
     Nginx --> DashboardFE
     FileService --> Minio
     UserService --> MongoDB
     SocketService --> Redis
-    ChatbotService -->|publish events| Kafka
-    SocketService -->|subscribe events| Kafka
+    AppicationService --> MongoDB
+    Kafka --> FunctionCallService
+    ChatbotService --> |Function call data| Kafka
+    IntegrationMessagePlatform --> |Incomming message| Kafka
+    Kafka --> |Recept new message| ChatbotService
+    ChatbotService -->|Out going message| Kafka
+    Kafka --> |direct outgoing message| SocketService
+    Kafka --> |Outgoing message| IntegrationMessagePlatform
 ```
 
 ### Key Components
