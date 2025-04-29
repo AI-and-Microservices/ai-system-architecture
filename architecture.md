@@ -33,25 +33,44 @@ flowchart TD
 ### Message flow
 ```mermaid
 flowchart TD
-    Traefik --> SocketService
-    Traefik --> | Webhook api | IntegrationMessagePlatform
-    IntegrationMessagePlatform --> |New message| ConversationService
-    SocketService --> |New message| ConversationService
-    ConversationService --> |New incomming message| Kafka
-    Kafka --> |New message| AIAgent
-    AIAgent <--> |get app config| AppicationService
-    AIAgent <--> |get chatbot prompt| ChatbotService
-    AIAgent <--> |Get message history| ConversationService
-    AIAgent --> |Call AI API| id1(OpenAI/Gemini/grok/deepseek)
-    AIAgent --> FunctionCallService
-    AIAgent --> |Outgoing message| Kafka
-    
-    FunctionCallService --> |API Call| 3rdparty
-    FunctionCallService --> |Save data| id2[(MongoDB)]
-    FunctionCallService --> |Save function_call result| ConversationService
-    Kafka --> |Save message| ConversationService
-    
-  
+    %% ENTRY
+    subgraph Entry ["Client & Input"]
+        Traefik --> SocketService:::entry
+        Traefik -->|Webhook API| IntegrationMessagePlatform:::entry
+        IntegrationMessagePlatform -->|New message| Kafka_incoming:::kafka
+        SocketService -->|New message| Kafka_incoming:::kafka
+    end
+
+    %% CORE PROCESSING
+    subgraph CoreProcessing ["MessageProcessor"]
+        Kafka_incoming --> MessageProcessor:::processing
+        MessageProcessor -->|Call AI API| AIService(OpenAI/Gemini/grok):::processing
+        MessageProcessor -->|get config| AppicationService:::processing
+        MessageProcessor -->|get prompt| ChatbotService:::processing
+        MessageProcessor -->|get history| ConversationService:::persistence
+        MessageProcessor --> Kafka_outgoing:::kafka
+        MessageProcessor --> Kafka_function_call:::kafka
+    end
+
+    %% FUNCTION CALL
+    subgraph FunctionCall ["Function Dispatcher"]
+        Kafka_function_call --> FunctionDispatcher:::function
+        FunctionDispatcher -->|API call| 3rdparty:::function
+        FunctionDispatcher -->|Save result| ConversationService:::persistence
+        FunctionDispatcher -->|Save to DB| MongoDB:::persistence
+    end
+
+    %% OUTGOING
+    subgraph Persistence ["Outgoing & Storage"]
+        Kafka_outgoing --> ConversationService:::persistence
+    end
+
+    %% CLASS DEFINITIONS
+    classDef entry fill:#e1fbe1,stroke:#34c759,color:#000;
+    classDef processing fill:#e0f0ff,stroke:#007aff,color:#000;
+    classDef kafka fill:#ffe9d6,stroke:#ff9500,color:#000;
+    classDef function fill:#f0e7ff,stroke:#af52de,color:#000;
+    classDef persistence fill:#f2f2f7,stroke:#8e8e93,color:#000;
   
 ```
 
