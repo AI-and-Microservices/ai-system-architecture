@@ -2,31 +2,51 @@
 
 ## High Level Overview
 
-### Base flow
+### High-level
 ```mermaid
-flowchart TD
-    User --> Traefik
-    Traefik --> Nginx
-    Traefik --> FileService
-    Traefik --> UserService
-    Traefik --> SocketService
-    Traefik --> ChatbotService
-    Traefik --> | Webhook api | IntegrationMessagePlatform
-    Traefik --> AppicationService
-    Traefik --> FunctionCallService
-    Traefik --> ConversationService
+flowchart LR
+    subgraph User Interaction
+        Browser --> Traefik
+    end
 
-    Nginx --> DashboardFE
-    FileService --> Minio
-    UserService --> MongoDB
-    UserService --> Redis
-    SocketService --> Redis
-    SocketService --> |Direct incoming message| Kafka
-    AppicationService --> MongoDB
-    
-    IntegrationMessagePlatform --> |Incomming message| Kafka
-    Kafka <--> AIAgent
-    Kafka <--> |Message processing| ConversationService
+    subgraph Edge Services
+        Traefik --> SocketService
+        Traefik --> IntegrationMessagePlatform
+    end
+
+    subgraph Message Ingestion
+        SocketService --> Kafka_incoming
+        IntegrationMessagePlatform --> Kafka_incoming
+    end
+
+    subgraph Core Processing
+        Kafka_incoming --> MessageProcessor
+        MessageProcessor --> Redis[(Redis Cache)]
+        MessageProcessor --> AIService
+        MessageProcessor --> Kafka_outgoing
+        MessageProcessor --> Kafka_function_call
+    end
+
+    subgraph Function Task
+        Kafka_function_call --> FunctionDispatcher
+        FunctionDispatcher --> 3rdPartyAPI
+        FunctionDispatcher --> MongoDB
+        FunctionDispatcher --> ConversationService
+    end
+
+    subgraph Persistence and Response
+        Kafka_outgoing --> ConversationService
+        ConversationService --> SocketService
+        ConversationService --> IntegrationMessagePlatform
+    end
+
+    subgraph Monitoring & Reliability
+        MessageProcessor --> MetricsCollector[(Prometheus / Grafana)]
+        FunctionDispatcher --> MetricsCollector
+        Kafka_incoming --> DeadLetterQueue[(Kafka DLQ)]
+        Kafka_function_call --> DeadLetterQueue
+    end
+
 
 ```
 
