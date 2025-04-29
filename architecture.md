@@ -4,7 +4,7 @@
 
 ### Base flow
 ```mermaid
-flowchart TB
+flowchart TD
     User --> Traefik
     Traefik --> Nginx
     Traefik --> FileService
@@ -13,48 +13,46 @@ flowchart TB
     Traefik --> ChatbotService
     Traefik --> | Webhook api | IntegrationMessagePlatform
     Traefik --> AppicationService
+    Traefik --> FunctionCallService
     Traefik --> ConversationService
-
-    AppicationService --> |New conversation| ConversationService
-    IntegrationMessagePlatform --> |New message| ConversationService
-    SocketService
 
     Nginx --> DashboardFE
     FileService --> Minio
     UserService --> MongoDB
+    UserService --> Redis
     SocketService --> Redis
     SocketService --> |Direct incoming message| Kafka
     AppicationService --> MongoDB
-    Kafka --> FunctionCallService
-    AIAgent --> |Function call data| Kafka
+    
     IntegrationMessagePlatform --> |Incomming message| Kafka
-    Kafka --> |Recept new message| AIAgent
-    AIAgent -->|Out going message| Kafka
-    Kafka --> |direct outgoing message| SocketService
-    Kafka --> |Outgoing message| IntegrationMessagePlatform
+    Kafka <--> AIAgent
+    Kafka <--> |Message processing| ConversationService
+
 ```
 
 ### Message flow
 ```mermaid
-flowchart TB
+flowchart TD
     Traefik --> SocketService
     Traefik --> | Webhook api | IntegrationMessagePlatform
-    IntegrationMessagePlatform --> |New message| Kafka
-    SocketService --> |New message| Kafka
+    IntegrationMessagePlatform --> |New message| ConversationService
+    SocketService --> |New message| ConversationService
+    ConversationService --> |New incomming message| Kafka
     Kafka --> |New message| AIAgent
-    AIAgent --> |get app config| AppicationService
-    AppicationService --> |Receive app config| AIAgent
-    AIAgent --> |get chatbot prompt| ChatbotService
-    ChatbotService --> |Receive chatbot prompt| AIAgent
-    AIAgent --> |Get message history| ConversationService
-    ConversationService --> |Receive message history| AIAgent
+    AIAgent <--> |get app config| AppicationService
+    AIAgent <--> |get chatbot prompt| ChatbotService
+    AIAgent <--> |Get message history| ConversationService
+    AIAgent --> |Call AI API| id1(OpenAI/Gemini/grok/deepseek)
     AIAgent --> FunctionCallService
     AIAgent --> |Outgoing message| Kafka
-    Kafka --> |Outgoing message| MessageProcessService
-    MessageProcessService --> |Indirect outgoing message| SocketService
-    MessageProcessService --> |Platform outgoing message| IntegrationMessagePlatform
+    
     FunctionCallService --> |API Call| 3rdparty
+    FunctionCallService --> |Save data| id2[(MongoDB)]
     FunctionCallService --> |Save function_call result| ConversationService
+    Kafka --> |Save message| ConversationService
+    
+  
+  
 ```
 
 ### Key Components
