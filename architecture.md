@@ -2,6 +2,7 @@
 
 ## High Level Overview
 
+### Base flow
 ```mermaid
 flowchart TB
     User --> Traefik
@@ -30,6 +31,25 @@ flowchart TB
     ChatbotService -->|Out going message| Kafka
     Kafka --> |direct outgoing message| SocketService
     Kafka --> |Outgoing message| IntegrationMessagePlatform
+```
+
+### Message flow
+```mermaid
+flowchart TB
+    Traefik --> SocketService
+    Traefik --> | Webhook api | IntegrationMessagePlatform
+    IntegrationMessagePlatform --> MessageProcessService
+    SocketService --> |Indirect message| MessageProcessService
+    MessageProcessService --> |Get appication info| AppicationService
+    AppicationService --> |Receipt Appication info| MessageProcessService
+    MessageProcessService --> |New message| Kafka
+    Kafka --> |New message| ChatbotService
+    ChatbotService --> FunctionCallService
+    ChatbotService --> |Outgoing message| Kafka
+    Kafka --> |Outgoing message| MessageProcessService
+    MessageProcessService --> |Indirect outgoing message| SocketService
+    MessageProcessService --> |Platform outgoing message| IntegrationMessagePlatform
+
 ```
 
 ### Key Components
