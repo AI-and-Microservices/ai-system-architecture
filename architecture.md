@@ -11,10 +11,15 @@ flowchart TB
     Traefik --> SocketService
     Traefik --> ChatbotService
     Traefik --> | Webhook api | IntegrationMessagePlatform
+    Traefik --> AppicationService
+
+    AppicationService --> |New conversation| ConversationService
+    IntegrationMessagePlatform --> |New message| ConversationService
+    SocketService
 
     Nginx --> DashboardFE
     FileService --> Minio
-    UserService --> MongoDB
+    UserService --> (MongoDB)
     SocketService --> Redis
     SocketService --> |Direct incoming message| Kafka
     AppicationService --> MongoDB
