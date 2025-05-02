@@ -29,7 +29,4 @@ It provides infrastructure components and a set of services designed for modular
 - **Virtual role Service**: Chatbot and AI Agent Logic
 
 ## Quick Start
-You can spin up the full system using Docker Compose:
-
-```bash
-docker-compose up --build
+You can spin up the full system using Docker Compose
